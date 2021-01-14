@@ -8,13 +8,13 @@ from datetime import datetime
 
 
 class RoundStatuses(Enum):
-    Ongoing = 1
-    Finished = 2
+    Ongoing = 'Ongoing'
+    Finished = 'Finished'
 
 
 class GameStatuses(Enum):
-    Ongoing = 1
-    Finished = 2
+    Ongoing = 'Ongoing'
+    Finished = 'Finished'
 
 
 @dataclass_json
@@ -89,7 +89,7 @@ class Player:
 class Game:
     game_id: uuid = field(default_factory=tuple)
     game_status: GameStatuses = GameStatuses
-    game_participants: List[Tuple[Player]] = field(default_factory=list)
+    game_participants: List[Tuple[Player, ScoreBase]] = field(default_factory=list)
 
     def export_game_participants(self) -> List:
         participants = [self.game_participants[0][0], self.game_participants[1][0]]
@@ -102,14 +102,14 @@ class Round:
     round_id: uuid.uuid4 = field(default_factory=tuple)
     ts_start: datetime.timestamp = datetime
     ts_end: Optional[datetime.timestamp] = datetime
-    round_status: RoundStatuses = RoundStatuses
+    round_status: RoundStatuses.value = RoundStatuses
     games_in_round: List[Game] = field(default_factory=list)
 
     def add_end_time(self):
         self.ts_end = datetime.now().timestamp()
 
     def change_status_to_finished(self):
-        self.round_status = RoundStatuses(2)
+        self.round_status = RoundStatuses.Finished.value
 
     def show_all_players(self) -> List:
         list_of_players = []
