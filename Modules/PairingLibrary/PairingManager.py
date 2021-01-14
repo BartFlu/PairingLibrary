@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
-from DataModels.RoundDataModel import Round, RoundStatuses
-from DataModels.GameDataModel import Game, GameStatuses
-from DataModels.PlayerDataModel import Player
-from DataModels.ScoreDataModel import WTCScoreSystem
+from DataModels.Datamodels import WTCScoreSystem, Player, Round, RoundStatuses, Game, GameStatuses
 from typing import List
 from datetime import datetime
 import uuid
@@ -18,14 +15,20 @@ class PairingManager(ABC):
     def create_round(self, round_n: int, players: List) -> Round:
         pass
 
-    @abstractmethod
-    def end_round(self, round: Round) -> List:
-        pass
+    @staticmethod
+    def get_final_results(game_round: Round) -> List:
+        all_players_in_round = game_round.show_all_players()
+        return all_players_in_round
+
+    def set_round_to_finished(self, game_round: Round) -> Round:
+        finished_round = self._set_round_end_time_and_status(game_round)
+        return finished_round
 
     @staticmethod
-    @abstractmethod
-    def delete_round(round_id: str):
-        pass
+    def _set_round_end_time_and_status(game_round: Round) -> Round:
+        game_round.add_end_time()
+        game_round.change_status_to_finished()
+        return game_round
 
 
 class SwissPairingManager(PairingManager):
@@ -104,18 +107,4 @@ class SwissPairingManager(PairingManager):
                               )
         return created_round
 
-    def end_round(self, round: Round) -> List:
-        finished_round = self._set_round_end_time_and_status(round)
-        #db.update_round(finished_round)
-        all_players_in_round = round.show_all_players()
-        return all_players_in_round
 
-    @staticmethod
-    def _set_round_end_time_and_status(round: Round) -> Round:
-        round.add_end_time()
-        round.change_status_to_finished()
-        return round
-
-    @staticmethod
-    def delete_round(round_id: str):
-        return NotImplemented
