@@ -22,7 +22,7 @@ class Tournament:
         self.round_number = 0
         self.pairing_manager: PairingManager = SwissPairingManager()
         self.db = None
-        self.round: Round = None
+        self.round: Optional[Round] = None
 
     def register_player(self, name: str, score: ScoreEnum, nickname: Optional[str] = None):
         player = self._create_player(name=name, nickname=nickname, score=score)
@@ -61,8 +61,9 @@ class Tournament:
 
     def update_game(self, game_id: str, pl1_points, pl1_tiebreakers, pl2_points, pl2_tiebreakers):
         game = [x for x in self.round.games_in_round if x.game_id == game_id][0]
-        game.game_participants[0][0].edit_score(pl1_points, pl1_tiebreakers)
-        game.game_participants[1][0].edit_score(pl2_points, pl2_tiebreakers)
+        players = game.export_game_participants()
+        players[0].edit_score(pl1_points, pl1_tiebreakers)
+        players[1].edit_score(pl2_points, pl2_tiebreakers)
 
     def set_pairing_manager(self, pairing_type: PairingEnum):
         self.pairing_manager = self._set_pairing_manager(pairing_type)

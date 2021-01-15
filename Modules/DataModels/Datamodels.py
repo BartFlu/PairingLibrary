@@ -66,7 +66,7 @@ class Player:
         return self.name
 
     def edit_score(self, points: int, tiebreakers: int):
-        self.score.changee_points(points)
+        self.score.change_points(points)
         self.score.change_tiebreakers(tiebreakers)
 
 
@@ -77,9 +77,10 @@ class Game:
     game_status: GameStatuses = GameStatuses
     game_participants: List[Tuple[Player, ScoreBase]] = field(default_factory=list)
 
-    def export_game_participants(self) -> List:
+    def export_game_participants(self) -> List[Player]:
         participants = [self.game_participants[0][0], self.game_participants[1][0]]
         return participants
+
 
 
 @dataclass_json
