@@ -26,19 +26,11 @@ class ScoreBase(ABC):
         self.tiebreakers = 0
 
     @abstractmethod
-    def points_addition(self, points: int):
+    def change_points(self, points: int):
         pass
 
     @abstractmethod
-    def points_subtraction(self, points: int):
-        pass
-
-    @abstractmethod
-    def tiebreakers_addition(self, tiebreakers: int):
-        pass
-
-    @abstractmethod
-    def tiebreakers_subtraction(self, tiebreakers: int):
+    def change_tiebreakers(self, points: int):
         pass
 
 
@@ -54,17 +46,11 @@ class WTCScoreSystem(ScoreBase):
     def comparison_points(self):
         return float(f'{self.points}.{self.tiebreakers}')
 
-    def points_addition(self, points: int):
-        self.points = self.points + points
+    def change_points(self, points: int):
+        self.points = points
 
-    def points_subtraction(self, points: int):
-        self.points = self.points - points
-
-    def tiebreakers_addition(self, tiebreakers: int):
-        self.tiebreakers = self.tiebreakers + tiebreakers
-
-    def tiebreakers_subtraction(self, tiebreakers: int):
-        self.tiebreakers = self.tiebreakers - tiebreakers
+    def change_tiebreakers(self, tiebreakers: int):
+        self.tiebreakers = tiebreakers
 
 
 @dataclass_json
@@ -80,8 +66,8 @@ class Player:
         return self.name
 
     def edit_score(self, points: int, tiebreakers: int):
-        self.score.points = points
-        self.score.tiebreakers = tiebreakers
+        self.score.changee_points(points)
+        self.score.change_tiebreakers(tiebreakers)
 
 
 @dataclass_json
@@ -102,14 +88,14 @@ class Round:
     round_id: uuid.uuid4 = field(default_factory=tuple)
     ts_start: datetime.timestamp = datetime
     ts_end: Optional[datetime.timestamp] = datetime
-    round_status: RoundStatuses.value = RoundStatuses
+    round_status: RoundStatuses = RoundStatuses
     games_in_round: List[Game] = field(default_factory=list)
 
     def add_end_time(self):
         self.ts_end = datetime.now().timestamp()
 
     def change_status_to_finished(self):
-        self.round_status = RoundStatuses.Finished.value
+        self.round_status = RoundStatuses.Finished
 
     def show_all_players(self) -> List:
         list_of_players = []

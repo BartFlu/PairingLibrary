@@ -69,7 +69,7 @@ class SwissPairingManager(PairingManager):
             player1 = (i, i.score)
             player2 = (k, k.score)
             game = Game(game_id=uuid.uuid4(),
-                        game_status=GameStatuses(1),
+                        game_status=GameStatuses.Ongoing,
                         game_participants=[player1, player2])
 
             list_of_games.append(game)
@@ -86,7 +86,7 @@ class SwissPairingManager(PairingManager):
             player1 = (player1, player1.score)
             player2 = (player2, player2.score)
             game = Game(game_id=uuid.uuid4(),
-                        game_status=GameStatuses(1),
+                        game_status=GameStatuses.Ongoing,
                         game_participants=[player1, player2])
 
             list_of_games.append(game)
@@ -102,7 +102,7 @@ class SwissPairingManager(PairingManager):
         created_round = Round(round_id=uuid.uuid4(),
                               ts_start=datetime.now().timestamp(),
                               ts_end=None,
-                              round_status=RoundStatuses(1),
+                              round_status=RoundStatuses.Ongoing,
                               games_in_round=games_in_round
                               )
         return created_round

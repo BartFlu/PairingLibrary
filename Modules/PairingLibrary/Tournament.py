@@ -19,7 +19,7 @@ class Tournament:
     def __init__(self, num_of_rounds: int):
         self.num_of_rounds = num_of_rounds
         self.players: List[Player] = []
-        self.round_number = 1
+        self.round_number = 0
         self.pairing_manager: PairingManager = SwissPairingManager()
         self.db = None
         self.round: Round = None
@@ -45,8 +45,8 @@ class Tournament:
         self.players = [x for x in self.players if x.player_id != player_id]
 
     def create_round(self):
-        new_round = self.pairing_manager.create_round(self.round_number, self.players)
         self.round_number += 1
+        new_round = self.pairing_manager.create_round(self.round_number, self.players)
         self.round = new_round
         return new_round
 
