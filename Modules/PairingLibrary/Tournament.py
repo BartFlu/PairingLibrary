@@ -59,7 +59,7 @@ class Tournament:
         self.round = None
         return self.players
 
-    def update_game(self, game_id: str, pl1_points, pl1_tiebreakers, pl2_points, pl2_tiebreakers):
+    def update_players_score(self, game_id: str, pl1_points, pl1_tiebreakers, pl2_points, pl2_tiebreakers):
         game = [x for x in self.round.games_in_round if x.game_id == game_id][0]
         players = game.export_game_participants()
         players[0].edit_score(pl1_points, pl1_tiebreakers)

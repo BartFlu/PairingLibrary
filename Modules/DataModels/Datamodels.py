@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime
 
 
+
 class RoundStatuses(Enum):
     Ongoing = 'Ongoing'
     Finished = 'Finished'
@@ -17,11 +18,10 @@ class GameStatuses(Enum):
     Finished = 'Finished'
 
 
-@dataclass_json
-@dataclass
 class ScoreBase(ABC):
 
     def __init__(self, points=0):
+        self.id: Optional[int] = None
         self.points = points
         self.tiebreakers = 0
 
@@ -56,6 +56,7 @@ class WTCScoreSystem(ScoreBase):
 @dataclass_json
 @dataclass
 class Player:
+    id: Optional[int] = None
     player_id: uuid = field(default_factory=tuple)
     name: str = '',
     nickname: Optional[str] = '',
@@ -73,6 +74,7 @@ class Player:
 @dataclass_json
 @dataclass
 class Game:
+
     game_id: uuid = field(default_factory=tuple)
     game_status: GameStatuses = GameStatuses
     game_participants: List[Tuple[Player, ScoreBase]] = field(default_factory=list)
@@ -82,10 +84,10 @@ class Game:
         return participants
 
 
-
 @dataclass_json
 @dataclass
 class Round:
+    id: Optional[int] = None
     round_id: uuid.uuid4 = field(default_factory=tuple)
     ts_start: datetime.timestamp = datetime
     ts_end: Optional[datetime.timestamp] = datetime
