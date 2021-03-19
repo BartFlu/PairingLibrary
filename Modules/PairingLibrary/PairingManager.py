@@ -137,5 +137,3 @@ class SwissPairingManager(PairingManager):
                               games_in_round=games_in_round
                               )
         return created_round
-
-
