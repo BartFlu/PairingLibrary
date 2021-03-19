@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from DataModels.Datamodels import WTCScoreSystem, Player, Round, RoundStatuses, Game, GameStatuses
+from DataModels.Datamodels import WTCScoreSystem, Player, Round, Game
 from typing import List
 from datetime import datetime
 import uuid
@@ -11,6 +11,9 @@ class PairingManager(ABC):
     def __init__(self):
         pass
 
+    def __repr__(self):
+        return self.__class__.__name__
+
     @abstractmethod
     def create_round(self, round_n: int, players: List) -> Round:
         pass
@@ -21,13 +24,12 @@ class PairingManager(ABC):
         return all_players_in_round
 
     def set_round_to_finished(self, game_round: Round) -> Round:
-        finished_round = self._set_round_end_time_and_status(game_round)
+        finished_round = self._finish_round_and_games(game_round)
         return finished_round
 
     @staticmethod
-    def _set_round_end_time_and_status(game_round: Round) -> Round:
-        game_round.add_end_time()
-        game_round.change_status_to_finished()
+    def _finish_round_and_games(game_round: Round) -> Round:
+        game_round.finish_and_update_total_score()
         return game_round
 
 
@@ -37,10 +39,10 @@ class SwissPairingManager(PairingManager):
         super().__init__()
         pass
 
-    def create_round(self, round_n: int, players: List) -> Round:
+    def create_round(self, first_round: bool, players: List) -> Round:
 
         players = self._add_bay_if_needed(players)
-        if round_n == 1:
+        if first_round:
             list_of_games = self._first_round_pairing(players)
         else:
             list_of_games = self._non_first_round_pairing(players)
@@ -69,7 +71,7 @@ class SwissPairingManager(PairingManager):
             player1 = (i, i.score)
             player2 = (k, k.score)
             game = Game(game_id=uuid.uuid4(),
-                        game_status=GameStatuses.Ongoing,
+                        game_status=Game.GameStatuses.Ongoing,
                         game_participants=[player1, player2])
 
             list_of_games.append(game)
@@ -86,7 +88,7 @@ class SwissPairingManager(PairingManager):
             player1 = (player1, player1.score)
             player2 = (player2, player2.score)
             game = Game(game_id=uuid.uuid4(),
-                        game_status=GameStatuses.Ongoing,
+                        game_status=Game.GameStatuses.Ongoing,
                         game_participants=[player1, player2])
 
             list_of_games.append(game)
@@ -94,7 +96,7 @@ class SwissPairingManager(PairingManager):
 
     @staticmethod
     def _sort_players_by_score(players: List) -> List:
-        players.sort(key=lambda x: x.score.comparison_points(), reverse=True)
+        players.sort(key=lambda x: x.total_score.comparison_points(), reverse=True)
         return players
 
     @staticmethod
@@ -102,7 +104,7 @@ class SwissPairingManager(PairingManager):
         created_round = Round(round_id=uuid.uuid4(),
                               ts_start=datetime.now().timestamp(),
                               ts_end=None,
-                              round_status=RoundStatuses.Ongoing,
+                              round_status=Round.RoundStatuses.Ongoing,
                               games_in_round=games_in_round
                               )
         return created_round
