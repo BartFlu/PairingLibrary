@@ -7,11 +7,6 @@ import uuid
 from datetime import datetime
 
 
-
-
-
-
-
 class ScoreBase(ABC):
 
     def __init__(self, points=0):
@@ -98,12 +93,17 @@ class Game:
     def end_game(self):
         self.game_status = Game.GameStatuses.Finished
         self._save_player_opponent()
+        self._set_players_total_score()
 
     def _save_player_opponent(self):
         player1 = self.game_participants[0][0]
         player2 = self.game_participants[1][0]
         player1.opponents_ids.append(player2.player_id)
         player2.opponents_ids.append(player1.player_id)
+
+    def _set_players_total_score(self):
+        for player in self.export_game_participants():
+            player.calculate_total_score()
 
 
 @dataclass_json
@@ -121,18 +121,24 @@ class Round:
     round_status: RoundStatuses = RoundStatuses
     games_in_round: List[Game] = field(default_factory=list)
 
-    def _add_end_time(self):
-        self.ts_end = datetime.now().timestamp()
-
     def finish_and_update_total_score(self):
+        """
+        Adds end time timestamp to self, sets status to finish, end games.
+        :return:
+        """
         self._add_end_time()
         self.round_status = Round.RoundStatuses.Finished
         for game in self.games_in_round:
             game.end_game()
-            for player in game.export_game_participants():
-                player.calculate_total_score()
+
+    def _add_end_time(self):
+        self.ts_end = datetime.now().timestamp()
 
     def show_all_players(self) -> List:
+        """
+        Show all players participating in the Round
+        :return: a list of Player objecst
+        """
         list_of_players = []
         for game in self.games_in_round:
             for player in game.export_game_participants():
