@@ -1,10 +1,8 @@
-from DataModels.PlayerDataModel import Player
-from DataModels.ScoreDataModel import WTCScoreSystem
-from DataModels.GameDataModel import Game
-from DataModels.RoundDataModel import Round
-
+from DataModels.Datamodels import ScoreBase, WTCScoreSystem, Player, Game, Round
+from PairingLibrary.PairingManager import SwissPairingManager
+from PairingLibrary.Tournament import Tournament
+from typing import List
 import unittest
-from PairingAlgorithms.PairingManager import SwissPairingManager
 
 
 horus = Player(player_id='asdsa', name='Horus', nickname='Warmaster', score=WTCScoreSystem(), opponents_ids=[])
@@ -43,6 +41,32 @@ class PairingManagerCreateRound(unittest.TestCase):
         players = [horus, lion, robot, bay]
         list_of_games = pm._first_round_pairing(players)
         self.assertIsInstance(pm._create_round_object(list_of_games), Round)
+
+
+class TournamentTester(unittest.TestCase):
+
+    t = Tournament()
+
+    def test_set_pairing_method(self):
+        TournamentTester.t.set_pairing_manager(Tournament.PairingEnum.Swiss)
+        self.assertIsInstance(TournamentTester.t.pairing_manager, SwissPairingManager)
+
+    def test_register_player(self):
+        TournamentTester.t.register_player('Steve', Tournament.ScoreEnum.WTC)
+        self.assertEqual(len(TournamentTester.t.players), 1)
+
+    def test_registered_player_type(self):
+        self.assertIsInstance(TournamentTester.t.players[0], Player)
+
+    def test_create_round_returned_type(self):
+        TournamentTester.t.create_round()
+        self.assertIsInstance(TournamentTester.t.round, Round)
+
+    def test_first_round_change(self):
+        self.assertEqual(TournamentTester.t.first_round, False)
+
+    def test_round_end_returned_type(self):
+        self.assertIsInstance(TournamentTester.t.end_round(), Round)
 
 
 if __name__ == '__main__':
