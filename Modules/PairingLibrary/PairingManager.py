@@ -69,7 +69,7 @@ class SwissPairingManager(PairingManager):
             bay = Player(player_id=uuid.uuid4(),
                          name='bay',
                          nickname=None,
-                         score=WTCScoreSystem(),
+                         score=WTCScoreSystem(), # todo przyjmujesz tutaj WTC scora dla bye'a, ale to nie zawsze tak bedzie
                          opponents_ids=[])
             players.append(bay)
 
@@ -89,7 +89,7 @@ class SwissPairingManager(PairingManager):
             player1 = (i, i.score)
             player2 = (k, k.score)
             game = Game(game_id=uuid.uuid4(),
-                        game_status=Game.GameStatuses.Ongoing,
+                        game_status=Game.GameStatuses.Ongoing,  # TODO a nie lepiej bedzie mieć coś takiego Game.Statuses.ONGOING ??
                         game_participants=[player1, player2])
 
             list_of_games.append(game)
@@ -106,7 +106,7 @@ class SwissPairingManager(PairingManager):
         players_sorted_by_score = self._sort_players_by_score(players)
         while len(players_sorted_by_score) > 0:
             player1 = players_sorted_by_score.pop(0)  # return the player with the highest score
-            possible_opponents = [x for x in players_sorted_by_score if x.player_id not in player1.opponents_ids]
+            possible_opponents = [x for x in players_sorted_by_score if x.player_id not in player1.opponents_ids]  # TODO To jest bardzo ładne, podoba mi się :)
             player2 = possible_opponents[0]
             players_sorted_by_score.remove(player2)
             player1 = (player1, player1.score)

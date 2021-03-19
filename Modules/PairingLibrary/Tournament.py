@@ -8,6 +8,8 @@ import uuid
 
 class Tournament:
 
+    # TODO jak w komentarzy w test scripts nie nazywja: PairingEnum, bo nie robisz też TournamentClass :)
+    # TODO przyjętym jest standardem, że wartości enumów piszemy Capital Cases, czyli: SWISS
     class PairingEnum(Enum):
         Swiss = SwissPairingManager
 
@@ -16,11 +18,11 @@ class Tournament:
 
     def __init__(self, pairing_manager: PairingEnum = PairingEnum.Swiss):
         self.first_round = True
-        self.players: List[Player] = []
+        self.players: List[Player] = []  # TODO Listę graczy można też zabstraktować robiąc osobną klasę przechowującą tę liste
         self.round_number = 0
         self.pairing_manager = pairing_manager.value()
         self.db = None
-        self.round: Optional[Round] = None
+        self.round: Optional[Round] = None  # TODO a nie lista rund???
 
     def register_player(self, name: str, score: ScoreEnum = ScoreEnum.WTC, nickname: Optional[str] = None):
         """
@@ -31,7 +33,7 @@ class Tournament:
         :param nickname: Optional, nickname as string
         :return: player id (UUID)
         """
-        player = self._create_player(name=name, nickname=nickname, score=score)
+        player = self._create_player(name=name, nickname=nickname, score=score)  # TODO Scoring powinien być wartością prywatną klasy, bo kazdy player będzie miał w ramach turnieju ten sam typ scoringu
         self.players.append(player)
         return player.player_id
 
@@ -42,11 +44,11 @@ class Tournament:
                         score=self._create_score(score),
                         total_score=self._create_score(score),
                         opponents_ids=[])
-        return player
+        return player # TODO mozna skrócić i po prostu: return Player(...)
 
     @staticmethod
     def _create_score(score: ScoreEnum) -> ScoreBase:
-        return score.value()
+        return score.value()  # TODO w pythonie czasem się nie pisze takich jednolinijkowych abstakcji, zwłaszcza jak to metoda prywatna
 
     def unregister_player(self, player_id: str) -> bool:
         """
@@ -72,7 +74,7 @@ class Tournament:
 
     def delete_round(self):
         """Delete Round object"""
-        self.round = None
+        self.round = None  # todo ale że wszystkie rundy?
 
     def end_round(self) -> Round:
         """
@@ -83,7 +85,7 @@ class Tournament:
         :return: Finished Round object.
         """
         finished_round = self.pairing_manager.set_round_to_finished(self.round)
-        self.round = None
+        self.round = None  # todo jak już uzywasz abstrakcji jak wyżej delete_round, to tutaj tego użyj
         return finished_round
 
     def show_results(self) -> List:
@@ -91,14 +93,14 @@ class Tournament:
 
         :return: List of tuples with players and their total score.
         """
-        return self._show_results()
+        return self._show_results()  # todo a tego to już nie rozumiem, dwie metody takie same?
 
     def _show_results(self) -> List:
         results = [(x, x.total_score) for x in self.players]
         return results
 
     def show_games_in_the_round(self) -> List:
-        return self.round.games_in_round
+        return self.round.games_in_round  # todo te wszystkie funkcje nie pokazują gier, tylko zwracają listę gier, poprawna nazwa to get_games_in_the_round_list
 
     def show_players_in_the_round(self) -> List:
         """
