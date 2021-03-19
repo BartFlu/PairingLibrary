@@ -40,6 +40,14 @@ class SwissPairingManager(PairingManager):
         pass
 
     def create_round(self, first_round: bool, players: List) -> Round:
+        """
+        Before the parings script checks if there is an even number of players and adds a 'dummy' if needed.
+        In Swiss first round is a random draft of players, next rounds' pairing are based on player score.
+        That's why this class checks if it's the first or non first  round.
+        :param first_round:
+        :param players:
+        :return:
+        """
 
         players = self._add_bay_if_needed(players)
         if first_round:
@@ -50,7 +58,12 @@ class SwissPairingManager(PairingManager):
         return created_round
 
     @staticmethod
-    def _add_bay_if_needed(list_of_players: List):
+    def _add_bay_if_needed(list_of_players: List) -> List:
+        """
+        Adds a dummy player if num of players is not even. Before that checks if there is a dummy player already.
+        :param list_of_players: A list of Player objects
+        :return: A list of Player objects
+        """
         players = [player for player in list_of_players if player.name != 'bay']
         if len(players) % 2 != 0:
             bay = Player(player_id=uuid.uuid4(),
@@ -65,6 +78,11 @@ class SwissPairingManager(PairingManager):
 
     @staticmethod
     def _first_round_pairing(players: List) -> List:
+        """
+        Shuffle player list and pair them randomly
+        :param players: List of Player objects
+        :return: A list of game objects
+        """
         list_of_games = []
         random.shuffle(players)
         for i, k in zip(players[0::2], players[1::2]):
@@ -78,6 +96,12 @@ class SwissPairingManager(PairingManager):
         return list_of_games
 
     def _non_first_round_pairing(self, players: List) -> List:
+        """
+        Sorts player by score, pick the player with the highest score and pick the next one from the pool of players
+        he didn't play with. Remove the players from the initial pool and repeat the process.
+        :param players: List of Player objects
+        :return: list of Game objects
+        """
         list_of_games = []
         players_sorted_by_score = self._sort_players_by_score(players)
         while len(players_sorted_by_score) > 0:
@@ -101,6 +125,11 @@ class SwissPairingManager(PairingManager):
 
     @staticmethod
     def _create_round_object(games_in_round: List) -> Round:
+        """
+
+        :param games_in_round: list of game objects
+        :return: Round object
+        """
         created_round = Round(round_id=uuid.uuid4(),
                               ts_start=datetime.now().timestamp(),
                               ts_end=None,
