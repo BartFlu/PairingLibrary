@@ -144,3 +144,4 @@ class Round:
             for player in game.export_game_participants():
                 list_of_players.append(player)
         return list_of_players
+

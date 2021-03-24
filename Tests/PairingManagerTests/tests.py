@@ -1,4 +1,4 @@
-from DataModels.Datamodels import ScoreBase, WTCScoreSystem, Player, Game, Round
+from DataModels.TournamentDataModel import ScoreBase, WTCScoreSystem, Player, Game, Round
 from PairingLibrary.PairingManager import SwissPairingManager
 from PairingLibrary.Tournament import Tournament
 from typing import List
@@ -17,15 +17,15 @@ class PairingManagerBayTester(unittest.TestCase):
 
     def test_add_bay_odd_list(self):
         players = [horus, lion, robot]
-        self.assertEqual(len(pm._add_bay_if_needed(players)), 4)
+        self.assertEqual(len(pm._add_bay_if_needed(players, scoring_system=Tournament.ScoreTypes.WTC)), 4)
 
     def test_add_bay_even_list(self):
         players = [horus, lion]
-        self.assertEqual(len(pm._add_bay_if_needed(players)), 2)
+        self.assertEqual(len(pm._add_bay_if_needed(players, scoring_system=Tournament.ScoreTypes.WTC)), 2)
 
     def test_removing_bay_when_not_necessary(self):
         players = [horus, lion, bay]
-        self.assertEqual(len(pm._add_bay_if_needed(players)), 2)
+        self.assertEqual(len(pm._add_bay_if_needed(players, scoring_system=Tournament.ScoreTypes.WTC)), 2)
 
 
 class PairingManagerFirstRoundTester(unittest.TestCase):
@@ -48,11 +48,11 @@ class TournamentTester(unittest.TestCase):
     t = Tournament()
 
     def test_set_pairing_method(self):
-        TournamentTester.t.set_pairing_manager(Tournament.PairingEnum.Swiss)
+        TournamentTester.t.set_pairing_manager(Tournament.PairingTypes.SWISS)
         self.assertIsInstance(TournamentTester.t.pairing_manager, SwissPairingManager)
 
     def test_register_player(self):
-        TournamentTester.t.register_player('Steve', Tournament.ScoreEnum.WTC)
+        TournamentTester.t.register_player('Steve', Tournament.ScoreTypes.WTC)
         self.assertEqual(len(TournamentTester.t.players), 1)
 
     def test_registered_player_type(self):
@@ -60,7 +60,7 @@ class TournamentTester(unittest.TestCase):
 
     def test_create_round_returned_type(self):
         TournamentTester.t.create_round()
-        self.assertIsInstance(TournamentTester.t.round, Round)
+        self.assertIsInstance(TournamentTester.t.current_round, Round)
 
     def test_first_round_change(self):
         self.assertEqual(TournamentTester.t.first_round, False)
