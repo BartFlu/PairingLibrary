@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from DataModels.Datamodels import WTCScoreSystem, Player, Round, Game
+from DataModels.TournamentDataModel import ScoreBase, Player, Round, Game
 from typing import List
 from datetime import datetime
 import uuid
@@ -15,7 +15,7 @@ class PairingManager(ABC):
         return self.__class__.__name__
 
     @abstractmethod
-    def create_round(self, round_n: int, players: List) -> Round:
+    def create_round(self, round_n: int, players: List, scoring_system) -> Round:
         pass
 
     @staticmethod
@@ -39,17 +39,18 @@ class SwissPairingManager(PairingManager):
         super().__init__()
         pass
 
-    def create_round(self, first_round: bool, players: List) -> Round:
+    def create_round(self, first_round: bool, players: List, scoring_system) -> Round:
         """
         Before the parings script checks if there is an even number of players and adds a 'dummy' if needed.
         In Swiss first round is a random draft of players, next rounds' pairing are based on player score.
         That's why this class checks if it's the first or non first  round.
         :param first_round:
         :param players:
+        :param scoring_system:
         :return:
         """
 
-        players = self._add_bay_if_needed(players)
+        players = self._add_bay_if_needed(players, scoring_system)
         if first_round:
             list_of_games = self._first_round_pairing(players)
         else:
@@ -58,7 +59,7 @@ class SwissPairingManager(PairingManager):
         return created_round
 
     @staticmethod
-    def _add_bay_if_needed(list_of_players: List) -> List:
+    def _add_bay_if_needed(list_of_players: List, scoring_system: ScoreBase) -> List:
         """
         Adds a dummy player if num of players is not even. Before that checks if there is a dummy player already.
         :param list_of_players: A list of Player objects
@@ -69,7 +70,8 @@ class SwissPairingManager(PairingManager):
             bay = Player(player_id=uuid.uuid4(),
                          name='bay',
                          nickname=None,
-                         score=WTCScoreSystem(), # todo przyjmujesz tutaj WTC scora dla bye'a, ale to nie zawsze tak bedzie
+                         score=scoring_system.value(),
+                         total_score=scoring_system.value(),
                          opponents_ids=[])
             players.append(bay)
 
@@ -89,7 +91,7 @@ class SwissPairingManager(PairingManager):
             player1 = (i, i.score)
             player2 = (k, k.score)
             game = Game(game_id=uuid.uuid4(),
-                        game_status=Game.GameStatuses.Ongoing,  # TODO a nie lepiej bedzie mieć coś takiego Game.Statuses.ONGOING ??
+                        game_status=Game.GameStatuses.ONGOING,  # TODO a nie lepiej bedzie mieć coś takiego Game.Statuses.ONGOING ??
                         game_participants=[player1, player2])
 
             list_of_games.append(game)
@@ -106,13 +108,13 @@ class SwissPairingManager(PairingManager):
         players_sorted_by_score = self._sort_players_by_score(players)
         while len(players_sorted_by_score) > 0:
             player1 = players_sorted_by_score.pop(0)  # return the player with the highest score
-            possible_opponents = [x for x in players_sorted_by_score if x.player_id not in player1.opponents_ids]  # TODO To jest bardzo ładne, podoba mi się :)
+            possible_opponents = [x for x in players_sorted_by_score if x.player_id not in player1.opponents_ids]
             player2 = possible_opponents[0]
             players_sorted_by_score.remove(player2)
             player1 = (player1, player1.score)
             player2 = (player2, player2.score)
             game = Game(game_id=uuid.uuid4(),
-                        game_status=Game.GameStatuses.Ongoing,
+                        game_status=Game.GameStatuses.ONGOING,
                         game_participants=[player1, player2])
 
             list_of_games.append(game)

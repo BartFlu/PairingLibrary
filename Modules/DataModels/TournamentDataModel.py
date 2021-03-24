@@ -74,8 +74,8 @@ class Player:
 class Game:
 
     class GameStatuses(Enum):
-        Ongoing = 'Ongoing'
-        Finished = 'Finished'
+        ONGOING = 'Ongoing'
+        FINISHED = 'Finished'
 
     game_id: uuid = field(default_factory=tuple)
     game_status: GameStatuses = GameStatuses
@@ -91,7 +91,7 @@ class Game:
         return participants
 
     def end_game(self):
-        self.game_status = Game.GameStatuses.Finished
+        self.game_status = Game.GameStatuses.FINISHED
         self._save_player_opponent()
         self._set_players_total_score()
 

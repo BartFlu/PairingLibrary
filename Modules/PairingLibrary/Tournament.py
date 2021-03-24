@@ -2,29 +2,29 @@ from typing import List
 from enum import Enum
 from typing import Optional
 from PairingLibrary.PairingManager import PairingManager, SwissPairingManager
-from DataModels.Datamodels import Round, Player, ScoreBase, WTCScoreSystem
+from DataModels.TournamentDataModel import Round, Player, ScoreBase, WTCScoreSystem
 import uuid
 
 
 class Tournament:
 
-    # TODO jak w komentarzy w test scripts nie nazywja: PairingEnum, bo nie robisz też TournamentClass :)
-    # TODO przyjętym jest standardem, że wartości enumów piszemy Capital Cases, czyli: SWISS
-    class PairingEnum(Enum):
-        Swiss = SwissPairingManager
+    class PairingTypes(Enum):
+        SWISS = SwissPairingManager
 
-    class ScoreEnum(Enum):
+    class ScoreTypes(Enum):
         WTC = WTCScoreSystem
 
-    def __init__(self, pairing_manager: PairingEnum = PairingEnum.Swiss):
+    def __init__(self, pairing_manager: PairingTypes = PairingTypes.SWISS, scoring_system: ScoreTypes = ScoreTypes.WTC):
         self.first_round = True
         self.players: List[Player] = []  # TODO Listę graczy można też zabstraktować robiąc osobną klasę przechowującą tę liste
         self.round_number = 0
         self.pairing_manager = pairing_manager.value()
+        self.scoring_system = scoring_system
         self.db = None
-        self.round: Optional[Round] = None  # TODO a nie lista rund???
+        self.current_round: Optional[Round] = None
+        self.past_rounds: List = []
 
-    def register_player(self, name: str, score: ScoreEnum = ScoreEnum.WTC, nickname: Optional[str] = None):
+    def register_player(self, name: str, nickname: Optional[str] = None):
         """
         Create Player object and add it to self.players.
 
@@ -33,22 +33,16 @@ class Tournament:
         :param nickname: Optional, nickname as string
         :return: player id (UUID)
         """
-        player = self._create_player(name=name, nickname=nickname, score=score)  # TODO Scoring powinien być wartością prywatną klasy, bo kazdy player będzie miał w ramach turnieju ten sam typ scoringu
+        player = self._create_player(name=name, nickname=nickname)
         self.players.append(player)
         return player.player_id
 
-    def _create_player(self, name: str, score: ScoreEnum, nickname: Optional[str]) -> Player:
-        player = Player(player_id=uuid.uuid4(),
-                        name=name,
-                        nickname=nickname,
-                        score=self._create_score(score),
-                        total_score=self._create_score(score),
-                        opponents_ids=[])
-        return player # TODO mozna skrócić i po prostu: return Player(...)
-
-    @staticmethod
-    def _create_score(score: ScoreEnum) -> ScoreBase:
-        return score.value()  # TODO w pythonie czasem się nie pisze takich jednolinijkowych abstakcji, zwłaszcza jak to metoda prywatna
+    def _create_player(self, name: str, nickname: Optional[str]) -> Player:
+        return Player(player_id=uuid.uuid4(), name=name,
+                      nickname=nickname,
+                      score=self.scoring_system.value(),
+                      total_score=self.scoring_system.value(),
+                      opponents_ids=[])
 
     def unregister_player(self, player_id: str) -> bool:
         """
@@ -66,58 +60,56 @@ class Tournament:
         Uses self.pairing_manager to create new Round object.
         :return: Round object
         """
-        new_round = self.pairing_manager.create_round(self.first_round, self.players)
+        new_round = self.pairing_manager.create_round(self.first_round, self.players, self.scoring_system)
         if self.first_round:
             self.first_round = False
-        self.round = new_round
+        self.current_round = new_round
         return new_round
-
-    def delete_round(self):
-        """Delete Round object"""
-        self.round = None  # todo ale że wszystkie rundy?
 
     def end_round(self) -> Round:
         """
         Use self.pairing_manager to finish the current round (self.round). Finish means adding end timestamp to
         the round object, changing round status to finish, game statuses to finish, calculating players total score
         and registering player's opponent ids.
+        Finished round is saved in self.past_rounds
         It then set self.round to None.
         :return: Finished Round object.
         """
-        finished_round = self.pairing_manager.set_round_to_finished(self.round)
-        self.round = None  # todo jak już uzywasz abstrakcji jak wyżej delete_round, to tutaj tego użyj
+        finished_round = self.pairing_manager.set_round_to_finished(self.current_round)
+        self.delete_round()
+        self.past_rounds.append(finished_round)
         return finished_round
+
+    def delete_round(self):
+        """Delete Round object"""
+        self.current_round = None
 
     def show_results(self) -> List:
         """
-
         :return: List of tuples with players and their total score.
         """
-        return self._show_results()  # todo a tego to już nie rozumiem, dwie metody takie same?
 
-    def _show_results(self) -> List:
-        results = [(x, x.total_score) for x in self.players]
-        return results
+        return [(x, x.total_score) for x in self.players]
 
-    def show_games_in_the_round(self) -> List:
-        return self.round.games_in_round  # todo te wszystkie funkcje nie pokazują gier, tylko zwracają listę gier, poprawna nazwa to get_games_in_the_round_list
+    def get_games_in_the_round_list(self) -> List:
+        return self.current_round.games_in_round
 
     def show_players_in_the_round(self) -> List:
         """
         Returns a list of players in the current round. Providing there is an ongoing round.
         :return: List of player objects.
         """
-        return self.round.show_all_players()
+        return self.current_round.show_all_players()
 
     def update_players_score(self, game_id: str, pl1_points: int, pl1_tiebreakers: int,
                              pl2_points: int, pl2_tiebreakers: int):
 
-        game = [x for x in self.round.games_in_round if x.game_id == game_id][0]
+        game = [x for x in self.current_round.games_in_round if x.game_id == game_id][0]
         players = game.export_game_participants()
         players[0].edit_score(pl1_points, pl1_tiebreakers)
         players[1].edit_score(pl2_points, pl2_tiebreakers)
 
-    def set_pairing_manager(self, pairing_type: PairingEnum):
+    def set_pairing_manager(self, pairing_type: PairingTypes):
         """
         Change the pairing manager.
         :param pairing_type: declared as this class internal Enum.
@@ -127,5 +119,5 @@ class Tournament:
         return self.pairing_manager
 
     @staticmethod
-    def _set_pairing_manager(pairing_type: PairingEnum) -> PairingManager:
+    def _set_pairing_manager(pairing_type: PairingTypes) -> PairingManager:
         return pairing_type.value()
