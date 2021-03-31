@@ -52,7 +52,7 @@ class TournamentTester(unittest.TestCase):
         self.assertIsInstance(TournamentTester.t.pairing_manager, SwissPairingManager)
 
     def test_register_player(self):
-        TournamentTester.t.register_player('Steve', Tournament.ScoreTypes.WTC)
+        TournamentTester.t.register_player('Steve')
         self.assertEqual(len(TournamentTester.t.players), 1)
 
     def test_registered_player_type(self):
