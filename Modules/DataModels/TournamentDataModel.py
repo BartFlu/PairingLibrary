@@ -78,7 +78,7 @@ class Game:
         FINISHED = 'Finished'
 
     game_id: uuid = field(default_factory=tuple)
-    game_status: GameStatuses = GameStatuses
+    game_status: Enum = GameStatuses
     game_participants: List[Tuple[Player, ScoreBase]] = field(default_factory=list)
 
     def edit_players_score(self, pl1_points: int, pl1_tiebreakers: int, pl2_points: int, pl2_tiebreakers: int):
@@ -137,7 +137,7 @@ class Round:
     def show_all_players(self) -> List:
         """
         Show all players participating in the Round
-        :return: a list of Player objecst
+        :return: a list of Player objects
         """
         list_of_players = []
         for game in self.games_in_round:
@@ -145,3 +145,25 @@ class Round:
                 list_of_players.append(player)
         return list_of_players
 
+
+class PoolOfPlayers:
+    def __init__(self):
+        self.players: List = field(default_factory=list)
+
+    def register_player(self, name: str, nickname: Optional[str], scoring: Enum) -> Player:
+        player = Player(player_id=uuid.uuid4(), name=name,
+                        nickname=nickname,
+                        score=scoring.value(),
+                        total_score=scoring.value(),
+                        opponents_ids=[])
+        self.players.append(Player)
+        return player
+
+    def unregister_player(self, player_id: str) -> bool:
+        init_players = len(self.players)
+        self.players = [x for x in self.players if x.player_id != player_id]
+        after_delete = len(self.players)
+        return True if init_players > after_delete else False
+
+    def list_the_players(self):
+        return [x for x in self.players]

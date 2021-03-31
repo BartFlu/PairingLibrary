@@ -4,6 +4,7 @@ from typing import List
 from datetime import datetime
 import uuid
 import random
+from enum import Enum
 
 
 class PairingManager(ABC):
@@ -59,7 +60,7 @@ class SwissPairingManager(PairingManager):
         return created_round
 
     @staticmethod
-    def _add_bay_if_needed(list_of_players: List, scoring_system: ScoreBase) -> List:
+    def _add_bay_if_needed(list_of_players: List, scoring_system: Enum) -> List:
         """
         Adds a dummy player if num of players is not even. Before that checks if there is a dummy player already.
         :param list_of_players: A list of Player objects
@@ -91,7 +92,7 @@ class SwissPairingManager(PairingManager):
             player1 = (i, i.score)
             player2 = (k, k.score)
             game = Game(game_id=uuid.uuid4(),
-                        game_status=Game.GameStatuses.ONGOING,  # TODO a nie lepiej bedzie mieć coś takiego Game.Statuses.ONGOING ??
+                        game_status=Game.GameStatuses.ONGOING,
                         game_participants=[player1, player2])
 
             list_of_games.append(game)

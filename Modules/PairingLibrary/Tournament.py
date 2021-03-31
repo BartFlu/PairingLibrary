@@ -2,7 +2,7 @@ from typing import List
 from enum import Enum
 from typing import Optional
 from PairingLibrary.PairingManager import PairingManager, SwissPairingManager
-from DataModels.TournamentDataModel import Round, Player, ScoreBase, WTCScoreSystem
+from DataModels.TournamentDataModel import Round, Player, WTCScoreSystem, PoolOfPlayers
 import uuid
 
 
@@ -16,7 +16,7 @@ class Tournament:
 
     def __init__(self, pairing_manager: PairingTypes = PairingTypes.SWISS, scoring_system: ScoreTypes = ScoreTypes.WTC):
         self.first_round = True
-        self.players: List[Player] = []  # TODO Listę graczy można też zabstraktować robiąc osobną klasę przechowującą tę liste
+        self.players = PoolOfPlayers()
         self.round_number = 0
         self.pairing_manager = pairing_manager.value()
         self.scoring_system = scoring_system
@@ -29,20 +29,11 @@ class Tournament:
         Create Player object and add it to self.players.
 
         :param name: Player name as string
-        :param score: Score class as Enum. It is now hardcoded as WTC scoring becouse it's the only one implemented
         :param nickname: Optional, nickname as string
         :return: player id (UUID)
         """
-        player = self._create_player(name=name, nickname=nickname)
-        self.players.append(player)
+        player = self.players.register_player(name=name, nickname=nickname, scoring=self.scoring_system)
         return player.player_id
-
-    def _create_player(self, name: str, nickname: Optional[str]) -> Player:
-        return Player(player_id=uuid.uuid4(), name=name,
-                      nickname=nickname,
-                      score=self.scoring_system.value(),
-                      total_score=self.scoring_system.value(),
-                      opponents_ids=[])
 
     def unregister_player(self, player_id: str) -> bool:
         """
@@ -50,17 +41,16 @@ class Tournament:
         :param player_id:
         :return: Returns True if deleted player.
         """
-        init_players = len(self.players)
-        self.players = [x for x in self.players if x.player_id != player_id]
-        after_delete = len(self.players)
-        return True if init_players > after_delete else False
+        return self.players.unregister_player(player_id)
 
     def create_round(self) -> Round:
         """
         Uses self.pairing_manager to create new Round object.
         :return: Round object
         """
-        new_round = self.pairing_manager.create_round(self.first_round, self.players, self.scoring_system)
+        new_round = self.pairing_manager.create_round(self.first_round,
+                                                      self.players.list_the_players(),
+                                                      self.scoring_system)
         if self.first_round:
             self.first_round = False
         self.current_round = new_round
